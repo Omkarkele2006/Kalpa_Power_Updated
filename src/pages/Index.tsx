@@ -1,14 +1,46 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
+import { UserRole } from '@/data/mockData';
+import DesignerDashboard from './DesignerDashboard';
+import LineManagerDashboard from './LineManagerDashboard';
+import DeptHeadDashboard from './DeptHeadDashboard';
+import SiteEngineerDashboard from './SiteEngineerDashboard';
+import VendorClientDashboard from './VendorClientDashboard';
+import AnalyticsPage from './AnalyticsPage';
+import ArchivePage from './ArchivePage';
+import StampingPage from './StampingPage';
 
-const Index = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
+const homeDashboard: Record<UserRole, React.ComponentType> = {
+  'designer': DesignerDashboard,
+  'line-manager': LineManagerDashboard,
+  'dept-head': DeptHeadDashboard,
+  'site-engineer': SiteEngineerDashboard,
+  'vendor-client': VendorClientDashboard,
 };
 
-export default Index;
+export default function Index() {
+  const [role, setRole] = useState<UserRole>('designer');
+  const HomeDash = homeDashboard[role];
+
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar currentRole={role} onRoleChange={setRole} />
+        <div className="flex-1 flex flex-col min-w-0">
+          <Routes>
+            <Route path="/" element={<HomeDash />} />
+            <Route path="/drawings" element={<DesignerDashboard />} />
+            <Route path="/review" element={<LineManagerDashboard />} />
+            <Route path="/approvals" element={<DeptHeadDashboard />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/archive" element={<ArchivePage />} />
+            <Route path="/stamping" element={<StampingPage />} />
+            <Route path="/qr-verify" element={<SiteEngineerDashboard />} />
+          </Routes>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+}
