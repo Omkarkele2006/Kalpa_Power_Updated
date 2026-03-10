@@ -29,7 +29,16 @@ export default function Index() {
       <div className="min-h-screen flex w-full">
         <AppSidebar currentRole={role} onRoleChange={setRole} />
         <div className="flex-1 flex flex-col min-w-0">
-          <HomeDash />
+          <Routes>
+            <Route path="/" element={<HomeDash />} />
+            <Route path="/drawings" element={<DesignerDashboard />} />
+            <Route path="/review" element={<LineManagerDashboard />} />
+            <Route path="/approvals" element={<DeptHeadDashboard />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/archive" element={<ArchivePage />} />
+            <Route path="/stamping" element={<StampingPage />} />
+            <Route path="/qr-verify" element={<SiteEngineerDashboard />} />
+          </Routes>
         </div>
       </div>
     </SidebarProvider>
