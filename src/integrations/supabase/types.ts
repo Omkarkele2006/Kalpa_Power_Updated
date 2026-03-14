@@ -14,16 +14,166 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      drawing_comments: {
+        Row: {
+          action: string
+          author_id: string
+          comment: string
+          created_at: string
+          drawing_id: string
+          id: string
+        }
+        Insert: {
+          action?: string
+          author_id: string
+          comment: string
+          created_at?: string
+          drawing_id: string
+          id?: string
+        }
+        Update: {
+          action?: string
+          author_id?: string
+          comment?: string
+          created_at?: string
+          drawing_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drawing_comments_drawing_id_fkey"
+            columns: ["drawing_id"]
+            isOneToOne: false
+            referencedRelation: "drawings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drawings: {
+        Row: {
+          approved_by: string | null
+          approved_date: string | null
+          created_at: string
+          design_name: string
+          designer_id: string
+          drawing_no: string
+          file_name: string | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          project: string
+          review_started: string | null
+          revision: number
+          stamp_applied: boolean | null
+          status: Database["public"]["Enums"]["drawing_status"]
+          updated_at: string
+        }
+        Insert: {
+          approved_by?: string | null
+          approved_date?: string | null
+          created_at?: string
+          design_name: string
+          designer_id: string
+          drawing_no: string
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          project: string
+          review_started?: string | null
+          revision?: number
+          stamp_applied?: boolean | null
+          status?: Database["public"]["Enums"]["drawing_status"]
+          updated_at?: string
+        }
+        Update: {
+          approved_by?: string | null
+          approved_date?: string | null
+          created_at?: string
+          design_name?: string
+          designer_id?: string
+          drawing_no?: string
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          project?: string
+          review_started?: string | null
+          revision?: number
+          stamp_applied?: boolean | null
+          status?: Database["public"]["Enums"]["drawing_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "designer"
+        | "line-manager"
+        | "dept-head"
+        | "site-engineer"
+        | "vendor-client"
+      drawing_status:
+        | "working"
+        | "under-review"
+        | "pending-dept-head"
+        | "approved"
+        | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +300,21 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "designer",
+        "line-manager",
+        "dept-head",
+        "site-engineer",
+        "vendor-client",
+      ],
+      drawing_status: [
+        "working",
+        "under-review",
+        "pending-dept-head",
+        "approved",
+        "rejected",
+      ],
+    },
   },
 } as const
