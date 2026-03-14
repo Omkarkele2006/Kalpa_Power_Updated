@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
-import { UserRole } from '@/data/mockData';
+import { useAuth } from '@/hooks/useAuth';
 import DesignerDashboard from './DesignerDashboard';
 import LineManagerDashboard from './LineManagerDashboard';
 import DeptHeadDashboard from './DeptHeadDashboard';
@@ -11,8 +10,11 @@ import VendorClientDashboard from './VendorClientDashboard';
 import AnalyticsPage from './AnalyticsPage';
 import ArchivePage from './ArchivePage';
 import StampingPage from './StampingPage';
+import type { Database } from '@/integrations/supabase/types';
 
-const homeDashboard: Record<UserRole, React.ComponentType> = {
+type AppRole = Database['public']['Enums']['app_role'];
+
+const homeDashboard: Record<AppRole, React.ComponentType> = {
   'designer': DesignerDashboard,
   'line-manager': LineManagerDashboard,
   'dept-head': DeptHeadDashboard,
@@ -21,13 +23,14 @@ const homeDashboard: Record<UserRole, React.ComponentType> = {
 };
 
 export default function Index() {
-  const [role, setRole] = useState<UserRole>('designer');
-  const HomeDash = homeDashboard[role];
+  const { role } = useAuth();
+  const effectiveRole: AppRole = role ?? 'designer';
+  const HomeDash = homeDashboard[effectiveRole];
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <AppSidebar currentRole={role} onRoleChange={setRole} />
+        <AppSidebar currentRole={effectiveRole} />
         <div className="flex-1 flex flex-col min-w-0">
           <Routes>
             <Route path="/" element={<HomeDash />} />

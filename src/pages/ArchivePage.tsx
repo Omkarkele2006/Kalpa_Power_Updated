@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { mockDrawings } from '@/data/mockData';
+import { useDrawings } from '@/hooks/useDrawings';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { DrawingTable } from '@/components/DrawingTable';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 
 export default function ArchivePage() {
+  const { data: allDrawings = [] } = useDrawings();
   const [search, setSearch] = useState('');
-  const archived = mockDrawings.filter(d => d.status === 'approved');
+  const archived = allDrawings.filter(d => d.status === 'approved');
   const filtered = archived.filter(d =>
-    d.drawingNo.toLowerCase().includes(search.toLowerCase()) ||
-    d.designName.toLowerCase().includes(search.toLowerCase()) ||
+    d.drawing_no.toLowerCase().includes(search.toLowerCase()) ||
+    d.design_name.toLowerCase().includes(search.toLowerCase()) ||
     d.project.toLowerCase().includes(search.toLowerCase())
   );
 
