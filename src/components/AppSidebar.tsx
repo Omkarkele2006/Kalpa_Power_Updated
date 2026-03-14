@@ -68,10 +68,10 @@ export function AppSidebar({ currentRole, onRoleChange }: AppSidebarProps) {
         {!collapsed && (
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
-              <span className="text-sm font-bold text-sidebar-primary-foreground">DC</span>
+              <span className="text-sm font-bold text-sidebar-primary-foreground">KP</span>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-sidebar-foreground">DocControl</h2>
+              <h2 className="text-sm font-semibold text-sidebar-foreground">Kalpa Power</h2>
               <p className="text-[10px] text-sidebar-foreground/60">Solar Project Suite</p>
             </div>
           </div>
