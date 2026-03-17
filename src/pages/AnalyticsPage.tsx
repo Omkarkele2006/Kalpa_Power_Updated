@@ -1,21 +1,23 @@
-import { mockDrawings } from '@/data/mockData';
+import { useDrawings } from '@/hooks/useDrawings';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 export default function AnalyticsPage() {
+  const { data: allDrawings = [] } = useDrawings();
+
   const statusCounts = [
-    { name: 'Working', value: mockDrawings.filter(d => d.status === 'working').length, color: 'hsl(210, 70%, 50%)' },
-    { name: 'Under Review', value: mockDrawings.filter(d => d.status === 'under-review').length, color: 'hsl(270, 60%, 55%)' },
-    { name: 'Pending DH', value: mockDrawings.filter(d => d.status === 'pending-dept-head').length, color: 'hsl(38, 92%, 50%)' },
-    { name: 'Approved', value: mockDrawings.filter(d => d.status === 'approved').length, color: 'hsl(145, 63%, 42%)' },
-    { name: 'Rejected', value: mockDrawings.filter(d => d.status === 'rejected').length, color: 'hsl(0, 72%, 51%)' },
+    { name: 'Working', value: allDrawings.filter(d => d.status === 'working').length, color: 'hsl(210, 70%, 50%)' },
+    { name: 'Under Review', value: allDrawings.filter(d => d.status === 'under-review').length, color: 'hsl(270, 60%, 55%)' },
+    { name: 'Pending DH', value: allDrawings.filter(d => d.status === 'pending-dept-head').length, color: 'hsl(38, 92%, 50%)' },
+    { name: 'Approved', value: allDrawings.filter(d => d.status === 'approved').length, color: 'hsl(145, 63%, 42%)' },
+    { name: 'Rejected', value: allDrawings.filter(d => d.status === 'rejected').length, color: 'hsl(0, 72%, 51%)' },
   ];
 
-  const designers = [...new Set(mockDrawings.map(d => d.designer))];
-  const designerData = designers.map(name => ({
+  const designerNames = [...new Set(allDrawings.map(d => d.profiles?.full_name ?? 'Unknown'))];
+  const designerData = designerNames.map(name => ({
     name: name.split(' ')[0],
-    total: mockDrawings.filter(d => d.designer === name).length,
-    approved: mockDrawings.filter(d => d.designer === name && d.status === 'approved').length,
+    total: allDrawings.filter(d => (d.profiles?.full_name ?? 'Unknown') === name).length,
+    approved: allDrawings.filter(d => (d.profiles?.full_name ?? 'Unknown') === name && d.status === 'approved').length,
   }));
 
   return (

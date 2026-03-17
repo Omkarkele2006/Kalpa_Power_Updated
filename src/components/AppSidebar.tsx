@@ -1,21 +1,29 @@
 import {
   Pencil, Users, Shield, HardHat, Building2,
   LayoutDashboard, FileCheck, Archive, BarChart3, QrCode, Stamp,
-  ChevronDown,
+  LogOut,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
-import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { UserRole, roleLabels, roleUsers } from '@/data/mockData';
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import type { Database } from '@/integrations/supabase/types';
 
-const roleIcons: Record<UserRole, typeof Pencil> = {
+type AppRole = Database['public']['Enums']['app_role'];
+
+const roleLabels: Record<AppRole, string> = {
+  'designer': 'Designer',
+  'line-manager': 'Line Manager',
+  'dept-head': 'Dept Head',
+  'site-engineer': 'Site Engineer',
+  'vendor-client': 'Vendor / Client',
+};
+
+const roleIcons: Record<AppRole, typeof Pencil> = {
   'designer': Pencil,
   'line-manager': Users,
   'dept-head': Shield,
@@ -23,12 +31,7 @@ const roleIcons: Record<UserRole, typeof Pencil> = {
   'vendor-client': Building2,
 };
 
-interface AppSidebarProps {
-  currentRole: UserRole;
-  onRoleChange: (role: UserRole) => void;
-}
-
-const navByRole: Record<UserRole, { title: string; url: string; icon: typeof LayoutDashboard }[]> = {
+const navByRole: Record<AppRole, { title: string; url: string; icon: typeof LayoutDashboard }[]> = {
   'designer': [
     { title: 'Dashboard', url: '/', icon: LayoutDashboard },
     { title: 'My Drawings', url: '/drawings', icon: FileCheck },
@@ -54,12 +57,15 @@ const navByRole: Record<UserRole, { title: string; url: string; icon: typeof Lay
   ],
 };
 
-export function AppSidebar({ currentRole, onRoleChange }: AppSidebarProps) {
+interface AppSidebarProps {
+  currentRole: AppRole;
+}
+
+export function AppSidebar({ currentRole }: AppSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  const location = useLocation();
+  const { profile, signOut } = useAuth();
   const RoleIcon = roleIcons[currentRole];
-  const user = roleUsers[currentRole];
   const items = navByRole[currentRole];
 
   return (
@@ -106,38 +112,22 @@ export function AppSidebar({ currentRole, onRoleChange }: AppSidebarProps) {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-3">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="flex w-full items-center gap-2 rounded-lg p-2 text-left hover:bg-sidebar-accent transition-colors">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent">
-                <RoleIcon className="h-4 w-4 text-sidebar-primary" />
-              </div>
-              {!collapsed && (
-                <>
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-xs font-medium text-sidebar-foreground">{user.name}</p>
-                    <p className="truncate text-[10px] text-sidebar-foreground/50">{roleLabels[currentRole]}</p>
-                  </div>
-                  <ChevronDown className="h-3.5 w-3.5 text-sidebar-foreground/50" />
-                </>
-              )}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="start" className="w-56">
-            {(Object.keys(roleLabels) as UserRole[]).map((role) => {
-              const Icon = roleIcons[role];
-              return (
-                <DropdownMenuItem key={role} onClick={() => onRoleChange(role)} className={role === currentRole ? 'bg-accent' : ''}>
-                  <Icon className="mr-2 h-4 w-4" />
-                  <div>
-                    <p className="text-sm">{roleLabels[role]}</p>
-                    <p className="text-[10px] text-muted-foreground">{roleUsers[role].name}</p>
-                  </div>
-                </DropdownMenuItem>
-              );
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2 p-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent">
+            <RoleIcon className="h-4 w-4 text-sidebar-primary" />
+          </div>
+          {!collapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-xs font-medium text-sidebar-foreground">{profile?.full_name ?? 'User'}</p>
+              <p className="truncate text-[10px] text-sidebar-foreground/50">{roleLabels[currentRole]}</p>
+            </div>
+          )}
+          {!collapsed && (
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-sidebar-foreground/50 hover:text-sidebar-foreground" onClick={signOut}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
