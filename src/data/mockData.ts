@@ -1,22 +1,26 @@
-export type DrawingStatus = 'working' | 'under-review' | 'pending-dept-head' | 'approved' | 'rejected';
-
 export type UserRole = 'designer' | 'line-manager' | 'dept-head' | 'site-engineer' | 'vendor-client';
+
+export type DrawingStatus = 'working' | 'under-review' | 'pending-dept-head' | 'approved' | 'rejected' | 'archived';
 
 export interface Drawing {
   id: string;
-  drawingNo: string;
-  designName: string;
+  drawing_no: string;       // was: drawingNo
+  design_name: string;      // was: designName
   revision: number;
-  date: string;
+  created_at: string;       // was: date
   status: DrawingStatus;
-  designer: string;
+  profiles?: { full_name: string } | null;  // joined from profiles table
   project: string;
-  fileType: 'pdf' | 'cad' | 'both';
-  rejectionComment?: string;
-  reviewStarted?: string;
-  approvedBy?: string;
-  approvedDate?: string;
-  stampApplied?: boolean;
+  file_url: string | null;
+  file_type: 'pdf' | 'cad' | 'both' | null;  // was: fileType
+  file_name?: string | null;
+  rejection_comment?: string;
+  review_started?: string | null;
+  approved_by?: string | null;
+  approved_date?: string | null;
+  stamp_applied: boolean;
+  designer_id: string;
+  archived_at?: string | null;
 }
 
 export interface Notification {
@@ -30,130 +34,160 @@ export interface Notification {
 
 export const mockDrawings: Drawing[] = [
   {
+    designer_id: 'mock-user-1',
     id: '1',
-    drawingNo: 'SLR-001',
-    designName: 'Panel_Layout_Block_A',
+    drawing_no: 'SLR-001',
+    design_name: 'Panel_Layout_Block_A',
     revision: 3,
-    date: '2026-03-08',
+    created_at: '2026-03-08',
     status: 'approved',
-    designer: 'Rajesh Patel',
+    profiles:{full_name: 'Rajesh Patel'},
     project: 'Al Dhafra Solar 2GW',
-    fileType: 'both',
-    approvedBy: 'Dr. Sara Sharma',
-    approvedDate: '2026-03-09',
-    stampApplied: true,
+    file_url: 'https://example.com/drawings/SLR-001.pdf',
+    file_type: 'both',
+    approved_by: 'Dr. Sara Sharma',
+    approved_date: '2026-03-09',
+    stamp_applied: true,
   },
   {
+    designer_id: 'mock-user-2',
     id: '2',
-    drawingNo: 'SLR-002',
-    designName: 'Inverter_Station_Detail',
+    drawing_no: 'SLR-002',
+    design_name: 'Inverter_Station_Detail',
     revision: 1,
-    date: '2026-03-07',
+    created_at: '2026-03-07',
     status: 'under-review',
-    designer: 'Rajesh Patel',
+    profiles:{full_name: 'Rajesh Patel'},
     project: 'Al Dhafra Solar 2GW',
-    fileType: 'both',
-    reviewStarted: '2026-03-08',
+    file_url: 'https://example.com/drawings/SLR-002.pdf',
+    file_type: 'both',
+    review_started: '2026-03-08',
+    stamp_applied:false,
   },
   {
+    designer_id: 'mock-user-3',
     id: '3',
-    drawingNo: 'SLR-003',
-    designName: 'Cable_Tray_Routing',
+    drawing_no: 'SLR-003',
+    design_name: 'Cable_Tray_Routing',
     revision: 2,
-    date: '2026-03-06',
+    created_at: '2026-03-06',
     status: 'rejected',
-    designer: 'Karan Singh',
+    profiles:{full_name: 'Karan Singh'},
     project: 'Al Dhafra Solar 2GW',
-    fileType: 'pdf',
-    rejectionComment: 'Cable tray dimensions do not meet IEC 61439 standards. Revise Section C clearances.',
+        file_url: 'https://example.com/drawings/SLR-003.pdf',
+    file_type: 'pdf',
+    rejection_comment: 'Cable tray dimensions do not meet IEC 61439 standards. Revise Section C clearances.',
+    stamp_applied:false
   },
   {
+    designer_id: 'mock-user-4',
     id: '4',
-    drawingNo: 'SLR-004',
-    designName: 'Foundation_Detail_Tracker',
+    drawing_no: 'SLR-004',
+    design_name: 'Foundation_Detail_Tracker',
     revision: 1,
-    date: '2026-03-09',
+    created_at: '2026-03-09',
     status: 'working',
-    designer: 'Karan Singh',
+    profiles:{full_name: 'Karan Singh'},
     project: 'NEOM Solar Phase 1',
-    fileType: 'cad',
+    file_url: 'https://example.com/drawings/SLR-004.pdf',
+    file_type: 'cad',
+    stamp_applied:false,
   },
   {
+    designer_id: 'mock-user-5',
     id: '5',
-    drawingNo: 'SLR-005',
-    designName: 'Substation_SLD',
+    drawing_no: 'SLR-005',
+    design_name: 'Substation_SLD',
     revision: 4,
-    date: '2026-03-05',
+    created_at: '2026-03-05',
     status: 'approved',
-    designer: 'Raj Patel',
+    profiles:{full_name: 'Raj Patel'},
     project: 'NEOM Solar Phase 1',
-    fileType: 'both',
-    approvedBy: 'Dr. Sara Sharma',
-    approvedDate: '2026-03-07',
-    stampApplied: true,
+    file_url:'https://example.com/drawings/SLR-006.pdf',
+
+    file_type: 'both',
+    approved_by: 'Dr. Sara Sharma',
+    approved_date: '2026-03-07',
+    stamp_applied: true,
   },
   {
+    designer_id: 'mock-user-6',
     id: '6',
-    drawingNo: 'SLR-006',
-    designName: 'Grounding_Grid_Layout',
+    drawing_no: 'SLR-006',
+    design_name: 'Grounding_Grid_Layout',
     revision: 1,
-    date: '2026-03-10',
+    created_at: '2026-03-10',
     status: 'pending-dept-head',
-    designer: 'Raj Patel',
+    profiles:{full_name: 'Raj Patel'},
     project: 'Al Dhafra Solar 2GW',
-    fileType: 'both',
-    reviewStarted: '2026-03-09',
+    file_url: 'https://example.com/drawings/SLR-007.pdf',
+
+    file_type: 'both',
+    review_started: '2026-03-09',
+    stamp_applied:false,
   },
   {
+    designer_id: 'mock-user-7',
     id: '7',
-    drawingNo: 'SLR-007',
-    designName: 'AC_Collection_Network',
+    drawing_no: 'SLR-007',
+    design_name: 'AC_Collection_Network',
     revision: 2,
-    date: '2026-03-04',
+    created_at: '2026-03-04',
     status: 'approved',
-    designer: 'Rajesh Kumar',
+    profiles:{full_name: 'Rajesh Kumar'},
     project: 'NEOM Solar Phase 1',
-    fileType: 'both',
-    approvedBy: 'Dr. Sara Sharma',
-    approvedDate: '2026-03-06',
-    stampApplied: true,
+    file_url: 'https://example.com/drawings/SLR-008.pdf',
+    file_type: 'both',
+    approved_by: 'Dr. Sara Sharma',
+    approved_date: '2026-03-06',
+    stamp_applied: true,
   },
   {
+    designer_id: 'mock-user-8',
     id: '8',
-    drawingNo: 'SLR-008',
-    designName: 'Transformer_Pad_Detail',
+    drawing_no: 'SLR-008',
+    design_name: 'Transformer_Pad_Detail',
     revision: 1,
-    date: '2026-03-10',
+    created_at: '2026-03-10',
     status: 'under-review',
-    designer: 'Karan Singh',
+    profiles:{full_name: 'Karan Singh'},
     project: 'Al Dhafra Solar 2GW',
-    fileType: 'cad',
-    reviewStarted: '2026-03-10',
+    file_url:'https://example.com/drawings/SLR-009.pdf',
+
+    file_type: 'cad',
+    review_started: '2026-03-10',
+    stamp_applied: false,
   },
   {
+    designer_id: 'mock-user-8',
     id: '9',
-    drawingNo: 'SLR-009',
-    designName: 'SCADA_Network_Diagram',
+    drawing_no: 'SLR-009',
+    design_name: 'SCADA_Network_Diagram',
     revision: 1,
-    date: '2026-03-09',
+    created_at: '2026-03-09',
     status: 'working',
-    designer: 'Raj Patel',
+    profiles:{full_name: 'Raj Patel'},
     project: 'NEOM Solar Phase 1',
-    fileType: 'pdf',
+    file_url:'https://example.com/drawings/SLR-0010.pdf',
+
+    file_type: 'pdf',
+    stamp_applied: false,
   },
   {
+    designer_id: 'mock-user-8',
     id: '10',
-    drawingNo: 'SLR-010',
-    designName: 'Perimeter_Fence_Layout',
+    drawing_no: 'SLR-010',
+    design_name: 'Perimeter_Fence_Layout',
     revision: 3,
-    date: '2026-03-03',
+    created_at: '2026-03-03',
     status: 'approved',
-    designer: 'Rajesh Kumar',
+    profiles:{full_name: 'Rajesh Kumar'},
     project: 'Al Dhafra Solar 2GW',
-    fileType: 'both',
-    approvedBy: 'Eng. Parth Sharma',
-    approvedDate: '2026-03-05',
-    stampApplied: true,
+    file_url:'https://example.com/drawings/SLR-0011.pdf',
+    file_type: 'both',
+    approved_by: 'Eng. Parth Sharma',
+    approved_date: '2026-03-05',
+    stamp_applied: true,
   },
 ];
 
@@ -183,7 +217,7 @@ export const roleUsers: Record<UserRole, { name: string; title: string }> = {
 };
 
 export function getFileName(d: Drawing): string {
-  return `${d.drawingNo}_${d.designName}_Rev${String(d.revision).padStart(2, '0')}_${d.date.replace(/-/g, '')}.${d.fileType === 'cad' ? 'dwg' : 'pdf'}`;
+  return `${d.drawing_no}_${d.design_name}_Rev${String(d.revision).padStart(2, '0')}_${d.created_at.replace(/-/g, '')}.${d.file_type === 'cad' ? 'dwg' : 'pdf'}`;
 }
 
 export function getAgingDays(dateStr: string): number {

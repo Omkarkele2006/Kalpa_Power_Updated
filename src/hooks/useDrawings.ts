@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { DrawingStatus } from '@/data/mockData';
 
 export function useDrawings() {
   return useQuery({
@@ -20,10 +21,11 @@ export function useDrawings() {
 
       const profileMap = new Map(profiles?.map(p => [p.id, p]) ?? []);
 
-      return data.map(d => ({
+      return data?.map(d => ({
         ...d,
         profiles: profileMap.get(d.designer_id) ?? null,
-      }));
+        status:d.status as DrawingStatus,
+      })) ?? [] ;
     },
   });
 }

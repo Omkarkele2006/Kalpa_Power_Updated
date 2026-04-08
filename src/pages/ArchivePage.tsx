@@ -8,7 +8,7 @@ import { Search } from 'lucide-react';
 export default function ArchivePage() {
   const { data: allDrawings = [] } = useDrawings();
   const [search, setSearch] = useState('');
-  const archived = allDrawings.filter(d => d.status === 'approved');
+  const archived = allDrawings.filter(d => d.status === 'archived');
   const filtered = archived.filter(d =>
     d.drawing_no.toLowerCase().includes(search.toLowerCase()) ||
     d.design_name.toLowerCase().includes(search.toLowerCase()) ||

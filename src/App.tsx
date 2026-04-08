@@ -18,7 +18,7 @@ function ProtectedRoutes() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary animate-pulse">
-            <span className="text-lg font-bold text-primary-foreground">DC</span>
+            <span className="text-lg font-bold text-primary-foreground">KP</span>
           </div>
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
@@ -29,6 +29,29 @@ function ProtectedRoutes() {
   if (!session) return <Navigate to="/auth" replace />;
   return <Index />;
 }
+
+// function ProtectedRoutes() {
+
+//   const session = { user: { id: 'test-user' } };
+//   const loading = false;
+
+//   if (loading) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center bg-background">
+//         <div className="text-center space-y-3">
+//           <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary animate-pulse">
+//             <span className="text-lg font-bold text-primary-foreground">KP</span>
+//           </div>
+//           <p className="text-sm text-muted-foreground">Loading...</p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+  
+//   return <Index />;
+// }
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

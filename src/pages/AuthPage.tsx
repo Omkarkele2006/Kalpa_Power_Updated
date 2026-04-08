@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable';
+import { lovable } from '@/integrations/kalpa_auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -92,7 +92,7 @@ export default function AuthPage() {
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary mb-4">
             <span className="text-lg font-bold text-primary-foreground">DC</span>
           </div>
-          <h1 className="text-2xl font-bold text-foreground">DocControl</h1>
+          <h1 className="text-2xl font-bold text-foreground">Kalpa Power</h1>
           <p className="text-sm text-muted-foreground mt-1">Solar Project Document Management</p>
         </div>
 

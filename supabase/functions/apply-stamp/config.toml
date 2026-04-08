@@ -1,0 +1,2 @@
+[functions.apply-stamp]
+verify_jwt = false

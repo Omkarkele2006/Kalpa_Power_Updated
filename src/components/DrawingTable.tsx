@@ -2,6 +2,8 @@ import { StatusBadge } from './StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText, FileCode, Clock } from 'lucide-react';
 import type { ReactNode } from 'react';
+import {Button} from '@/components/ui/button';
+import { Download } from 'lucide-react';
 
 interface DrawingRow {
   id: string;
@@ -16,6 +18,8 @@ interface DrawingRow {
   designer_id: string;
   profiles?: { full_name: string } | null;
   [key: string]: any;
+  file_url: string | null;
+  stamp_applied: boolean;
 }
 
 interface DrawingTableProps {
@@ -66,6 +70,19 @@ export function DrawingTable({ drawings, showDesigner = true, showAging = false,
                 </div>
               </TableCell>
               <TableCell><StatusBadge status={d.status as any} /></TableCell>
+{(renderActions || d.status === 'approved') && (
+  <TableCell className="text-right">
+    <div className="flex justify-end gap-2">
+      {d.status === 'approved' && (
+        <Button variant="outline" size="sm" onClick={() => window.open(d.file_url, '_blank')}>
+          <Download className="h-4 w-4 mr-1" />
+          {d.stamp_applied ? 'Stamped PDF' : 'Download PDF'}
+        </Button>
+      )}
+      {renderActions?.(d)}
+    </div>
+  </TableCell>
+)}
               {showAging && (
                 <TableCell>
                   {d.review_started && (
