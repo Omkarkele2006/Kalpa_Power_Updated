@@ -151,8 +151,8 @@ export function UploadDrawingDialog() {
     const revStr = String(revisionNumber).padStart(2, '0');
     const safeName = designName.replace(/\s+/g, '_');
 
-    // const path = `${user.id}/${drawingNo}_${designName}_Rev${revStr}_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.${ext}`;
-    const path = `${user.id}/${drawingNo}_${safeName}_Rev${revStr}_${...}.${ext}`;
+    const path = `${user.id}/${drawingNo}_${designName}_Rev${revStr}_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.${ext}`;
+    // const path = `${user.id}/${drawingNo}_${safeName}_Rev${revStr}_${...}.${ext}`;
     const { error: uploadError } = await supabase.storage
       .from('drawing-files')
       .upload(path, primaryFile, { upsert: true });
