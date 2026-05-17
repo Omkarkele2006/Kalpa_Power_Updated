@@ -5,6 +5,7 @@ import { DashboardHeader } from '@/components/DashboardHeader';
 import { StatsCard } from '@/components/StatsCard';
 import { DrawingTable } from '@/components/DrawingTable';
 import { RejectDialog } from '@/components/RejectDialog';
+import { createNotification } from '@/lib/notifications';
 import { Inbox, Clock, Users, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -28,17 +29,69 @@ export default function LineManagerDashboard() {
   const [rejectDrawing, setRejectDrawing] = useState<{ id: string; no: string } | null>(null);
 
   const handleApprove = async (id: string) => {
-    const { error } = await supabase.from('drawings').update({ status: 'pending-dept-head' as any }).eq('id', id);
-    if (error) { toast.error(error.message); return; }
+    const drawing = allDrawings.find(d => d.id === id);
 
-    // Add approval comment
+    if (!drawing) return;
+
+    const { error } = await supabase
+      .from('drawings')
+      .update({
+        status: 'pending-dept-head' as any,
+      })
+      .eq('id', id);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    // Approval comment
     if (user) {
       await supabase.from('drawing_comments').insert({
-        drawing_id: id, author_id: user.id, comment: 'Approved by Line Manager — forwarded to Dept Head', action: 'approve',
+        drawing_id: id,
+        author_id: user.id,
+        comment:
+          'Approved by Line Manager — forwarded to Dept Head',
+        action: 'approve',
       });
     }
-    toast.success('Drawing forwarded to Dept Head for final approval');
-    queryClient.invalidateQueries({ queryKey: ['drawings'] });
+
+    // Notify designer
+    if (drawing.designer_id) {
+      await createNotification({
+        userId: drawing.designer_id,
+        title: 'Line Manager Approved',
+        message: `${drawing.drawing_no} approved by Line Manager and forwarded to Dept Head`,
+        type: 'approved',
+        drawingId: drawing.id,
+      });
+    }
+
+    // Notify all dept heads
+    const { data: deptHeads } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('role', 'dept-head');
+
+    if (deptHeads) {
+      for (const dh of deptHeads) {
+        await createNotification({
+          userId: dh.id,
+          title: 'Drawing Pending Approval',
+          message: `${drawing.drawing_no} is awaiting Dept Head approval`,
+          type: 'pending-dept-head',
+          drawingId: drawing.id,
+        });
+      }
+    }
+
+    toast.success(
+      'Drawing forwarded to Dept Head for final approval'
+    );
+
+    queryClient.invalidateQueries({
+      queryKey: ['drawings'],
+    });
   };
 
   return (
@@ -71,9 +124,12 @@ export default function LineManagerDashboard() {
         <RejectDialog
           open={!!rejectDrawing}
           onOpenChange={() => setRejectDrawing(null)}
+          designerId={
+            allDrawings.find(d => d.id === rejectDrawing.id)?.designer_id ?? ''
+          }
           drawingId={rejectDrawing.id}
           drawingNo={rejectDrawing.no}
-          revertStatus="working"
+          revertStatus="rejected"
         />
       )}
     </div>

@@ -104,7 +104,7 @@ export default function AuthPage() {
               <>
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
-                  <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Ahmed Khan" required />
+                  <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Amit Deshmukh" required />
                 </div>
                 <div className="space-y-2">
                   <Label>Your Role</Label>

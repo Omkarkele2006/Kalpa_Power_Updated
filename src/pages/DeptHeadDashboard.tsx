@@ -8,10 +8,12 @@ import { RejectDialog } from '@/components/RejectDialog';
 import { CheckCircle, Clock, XCircle, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { createNotification } from '@/lib/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Drawing } from '@/data/mockData';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { copyToApproved, deleteStorageFile, getApprovedPath, getSiblingStoragePath, getSignedUrl, moveToApproved } from '@/lib/storageUtils';
 
 export default function DeptHeadDashboard() {
   const { profile, user } = useAuth();
@@ -95,124 +97,162 @@ export default function DeptHeadDashboard() {
 
 
 const handleApprove = async (drawing: Drawing) => {
+  if (!drawing.folder_path) {
+    toast.error('Cannot approve drawing: missing storage path.');
+    return;
+  }
+
+  const sourcePath = drawing.folder_path;
+  const approvedPath = getApprovedPath(sourcePath);
+  const isPdf = drawing.file_type !== 'cad';
+
+  console.debug('[DeptHead] approving drawing', {
+    drawingId: drawing.id,
+    drawing_no: drawing.drawing_no,
+    project_number: drawing.project_number,
+    sourcePath,
+    approvedPath,
+    file_type: drawing.file_type,
+  });
+
+  const toastId = toast.loading('Approving drawing...');
+
   try {
-    // 1. Update DB status
-    const { error } = await supabase.from('drawings').update({
-      status: 'approved' as any,
-      approved_by: user?.id,
-      approved_date: new Date().toISOString(),
-    }).eq('id', drawing.id);
+    // ── Step 1: Stamp PDF if needed and write to approved/ ──────────────────
+    let createdApprovedPaths: string[] = [];
+    const cleanupApprovedArtifacts = async () => {
+      await Promise.allSettled(createdApprovedPaths.map((p) => deleteStorageFile(p)));
+    };
 
-    if (error) { toast.error("Approval failed: " + error.message); return; }
+    try {
+      if (isPdf) {
+        const signedUrl = await getSignedUrl(sourcePath);
+        const response = await fetch(signedUrl);
+        if (!response.ok) throw new Error(`Could not fetch PDF: ${response.status}`);
 
-    // 2. If it's a CAD-only file, skip stamping
-    if (drawing.file_type === 'cad' || !drawing.file_url) {
-      toast.success('Drawing approved!');
-      queryClient.invalidateQueries({ queryKey: ['drawings'] });
-      return;
+        const pdfBytes = await response.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+        const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+        const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const firstPage = pdfDoc.getPages()[0];
+        const { width } = firstPage.getSize();
+
+        const stampMargin = 24;
+        const stampWidth = Math.min(280, width * 0.34);
+        const stampLines = [
+          'APPROVED',
+          'Kalpa Power Pvt. Ltd.',
+          `Approved By: ${profile?.full_name ?? 'Department Head'}`,
+          'Designation: Department Head',
+          `Approval Date: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Kolkata' })}`,
+          `Approval Time: ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })} IST`,
+          `Document Revision: R${drawing.revision}`,
+          'Status: Approved',
+        ];
+        const stampLineHeight = 12;
+        const stampHeight = stampLineHeight * stampLines.length + 24;
+        const stampX = width - stampMargin - stampWidth;
+        const stampY = stampMargin;
+
+        firstPage.drawRectangle({
+          x: stampX, y: stampY, width: stampWidth, height: stampHeight,
+          borderColor: rgb(0, 0.35, 0.15), color: rgb(1, 1, 1), borderWidth: 1.8,
+        });
+
+        firstPage.drawText(stampLines[0], {
+          x: stampX + 12, y: stampY + stampHeight - 28,
+          size: 16, font: boldFont, color: rgb(0, 0.35, 0.15),
+        });
+
+        firstPage.drawLine({
+          start: { x: stampX + 10, y: stampY + stampHeight - 34 },
+          end:   { x: stampX + stampWidth - 10, y: stampY + stampHeight - 34 },
+          thickness: 1, color: rgb(0, 0.35, 0.15),
+        });
+
+        stampLines.slice(1).forEach((line, index) => {
+          firstPage.drawText(line, {
+            x: stampX + 12,
+            y: stampY + stampHeight - 34 - ((index + 1) * stampLineHeight),
+            size: 9, font: regularFont, color: rgb(0.15, 0.15, 0.15),
+          });
+        });
+
+        const stampedBytes = await pdfDoc.save();
+        const { error: uploadError } = await supabase.storage
+          .from('drawing-files')
+          .upload(approvedPath, stampedBytes, { upsert: true, contentType: 'application/pdf' });
+        if (uploadError) throw new Error('Upload failed: ' + uploadError.message);
+        createdApprovedPaths.push(approvedPath);
+
+        if (drawing.file_type === 'both') {
+          const cadSourcePath = getSiblingStoragePath(sourcePath);
+          const cadApprovedPath = getSiblingStoragePath(approvedPath);
+          if (cadSourcePath && cadApprovedPath) {
+            await moveToApproved(cadSourcePath);
+            createdApprovedPaths.push(cadApprovedPath);
+          }
+        }
+      } else {
+        // CAD-only: copy to approved/ without stamping
+        await moveToApproved(sourcePath);
+        createdApprovedPaths.push(approvedPath);
+      }
+    } catch (storageError) {
+      await cleanupApprovedArtifacts();
+      throw storageError;
     }
 
-    // 3. Client-side PDF stamp
-    const toastId = toast.loading('Applying stamp to PDF...');
+    // ── Step 2: Update DB FIRST with new approved path ──────────────────────
+    // CRITICAL: Update DB before deleting working file. If this fails,
+    // we still have the working file and can retry without data loss.
+    const { data: urlData } = supabase.storage.from('drawing-files').getPublicUrl(approvedPath);
 
-    // Fetch the PDF — needs bucket to be public
-    const response = await fetch(drawing.file_url);
-    if (!response.ok) throw new Error(`Could not fetch PDF: ${response.status}`);
-    
-    const pdfBytes = await response.arrayBuffer();
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const firstPage = pdfDoc.getPages()[0];
-    const { width, height } = firstPage.getSize();
-
-    // Stamp box — top right
-    firstPage.drawRectangle({
-      x: width - 190,
-      y: height - 95,
-      width: 175,
-      height: 80,
-      borderColor: rgb(0, 0.55, 0.27),
-      borderWidth: 2,
-    });
-    firstPage.drawText('APPROVED', {
-      x: width - 178,
-      y: height - 38,
-      size: 22,
-      font,
-      color: rgb(0, 0.55, 0.27),
-    });
-    firstPage.drawText(`By: ${profile?.full_name ?? 'Dept Head'}`, {
-      x: width - 178,
-      y: height - 58,
-      size: 9,
-      font,
-      color: rgb(0.15, 0.15, 0.15),
-    });
-    firstPage.drawText(`Date: ${new Date().toLocaleDateString()}`, {
-      x: width - 178,
-      y: height - 72,
-      size: 9,
-      font,
-      color: rgb(0.15, 0.15, 0.15),
-    });
-
-    const stampedBytes = await pdfDoc.save();
-
-    // 4. Upload stamped version to approved/ subfolder
-    // const originalPath = drawing.file_url.split('/drawing-files/')[1];
-    const originalPath = drawing.file_url.split('/drawing-files/')[1];
-
-    // Remove any query params from the path
-    const cleanPath = originalPath.split('?')[0];
-    const decodedPath = decodeURIComponent(cleanPath);
-
-
-    // const fileName = cleanPath.split('/').pop();
-    const fileName = decodedPath.split('/').pop();
-
-    // const userId = cleanPath.split('/')[0];
-    const userId = decodedPath.split('/')[0];
-
-    const safeFileName = fileName!.replace(/\s+/g, '_');
-
-
-    // const stampedPath = `${userId}/approved/${fileName}`;
-    const stampedPath = `${userId}/approved/${safeFileName}`;
-
-
-    const { error: uploadError } = await supabase.storage
-      .from('drawing-files')
-      .upload(stampedPath, stampedBytes, {
-        upsert: true,
-        contentType: 'application/pdf',
-      });
-
-    if (uploadError) throw new Error('Upload failed: ' + uploadError.message);
-
-    // 5. Get new URL and update DB
-    const { data: urlData } = supabase.storage
-      .from('drawing-files')
-      .getPublicUrl(stampedPath);
-
-    await supabase.from('drawings').update({
-      stamp_applied: true,
-      file_url: urlData.publicUrl,
+    const { error: updateError } = await supabase.from('drawings').update({
+      status:        'approved' as any,
+      approved_by:   user?.id,
+      approved_date: new Date().toISOString(),
+      folder_path:   approvedPath,
+      file_url:      urlData.publicUrl,
+      stamp_applied: isPdf,
     }).eq('id', drawing.id);
 
-    // 6. Add approval comment
+    if (updateError) {
+      await cleanupApprovedArtifacts();
+      throw updateError;
+    }
+
+    // ── Step 3: Delete working file now that DB is safely updated ──────────
+    // Only delete after DB confirms the approved path.
+    if (sourcePath !== approvedPath) {
+      try {
+        await deleteStorageFile(sourcePath);
+      } catch (deleteErr) {
+        console.warn('[DeptHead] Failed to delete working file after approval (non-blocking):', deleteErr);
+        // Do not throw — the important data is already in approved/
+      }
+    }
+
+    // ── Step 4: Audit comment ──────────────────────────────────────────────
     if (user) {
       await supabase.from('drawing_comments').insert({
         drawing_id: drawing.id,
-        author_id: user.id,
-        comment: `Approved by ${profile?.full_name} — PDF stamp applied`,
+        author_id:  user.id,
+        comment: `Approved by ${profile?.full_name} — ${isPdf ? 'PDF stamp applied' : 'Final approval granted'}`,
         action: 'approve',
       });
     }
 
     toast.dismiss(toastId);
-    toast.success('Drawing approved and PDF stamped!');
+    await createNotification({
+  userId: drawing.designer_id,
+  title: 'Drawing Approved',
+  message: `${drawing.drawing_no} approved successfully`,
+  type: 'approved',
+  drawingId: drawing.id,
+});
+    toast.success(isPdf ? 'Drawing approved and PDF stamped!' : 'Drawing approved!');
     queryClient.invalidateQueries({ queryKey: ['drawings'] });
-
   } catch (err: any) {
     toast.dismiss();
     toast.error('Error: ' + err.message);
@@ -249,13 +289,7 @@ const handleApprove = async (drawing: Drawing) => {
             renderActions={(d) => (
               <div className="flex gap-2 justify-end">
                 {/* ADD VIEW BUTTON HERE */}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => window.open(d.file_url, '_blank')}
-                >
-                  View PDF
-                </Button>
+                
 
                 <Button size="sm" className="..." onClick={() => handleApprove(d as unknown as Drawing)}>Approve</Button>
                 <Button size="sm" variant="destructive" onClick={() => setRejectDrawing({ id: d.id, no: d.drawing_no })}>Reject</Button>
@@ -269,9 +303,12 @@ const handleApprove = async (drawing: Drawing) => {
         <RejectDialog
           open={!!rejectDrawing}
           onOpenChange={() => setRejectDrawing(null)}
+          designerId={
+  allDrawings.find(d => d.id === rejectDrawing.id)?.designer_id ?? ''
+}
           drawingId={rejectDrawing.id}
           drawingNo={rejectDrawing.no}
-          revertStatus="working"
+          revertStatus="rejected"
         />
       )}
     </div>

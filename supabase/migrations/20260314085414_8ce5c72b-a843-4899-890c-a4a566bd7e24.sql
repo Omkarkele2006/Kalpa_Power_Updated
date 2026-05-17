@@ -94,8 +94,8 @@ CREATE POLICY "Designers see own drawings" ON public.drawings FOR SELECT TO auth
 CREATE POLICY "Designers can insert drawings" ON public.drawings FOR INSERT TO authenticated
   WITH CHECK (auth.uid() = designer_id AND public.has_role(auth.uid(), 'designer'));
 
-CREATE POLICY "Designers can update own working drawings" ON public.drawings FOR UPDATE TO authenticated
-  USING (auth.uid() = designer_id AND status = 'working');
+CREATE POLICY "Designers can update own working and rejected drawings" ON public.drawings FOR UPDATE TO authenticated
+  USING (auth.uid() = designer_id AND status IN ('working', 'rejected'));
 
 CREATE POLICY "Line managers can update under-review drawings" ON public.drawings FOR UPDATE TO authenticated
   USING (public.has_role(auth.uid(), 'line-manager') AND status = 'under-review');

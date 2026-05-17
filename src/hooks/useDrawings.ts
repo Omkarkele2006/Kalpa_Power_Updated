@@ -6,9 +6,12 @@ export function useDrawings() {
   return useQuery({
     queryKey: ['drawings'],
     queryFn: async () => {
+      // Excludes archived rows from live dashboards.
+      // Use useArchivedDrawings() on the Archive page.
       const { data, error } = await supabase
         .from('drawings')
         .select('*')
+        .neq('status', 'archived')
         .order('created_at', { ascending: false });
       if (error) throw error;
 
@@ -24,8 +27,36 @@ export function useDrawings() {
       return data?.map(d => ({
         ...d,
         profiles: profileMap.get(d.designer_id) ?? null,
-        status:d.status as DrawingStatus,
-      })) ?? [] ;
+        status: d.status as DrawingStatus,
+      })) ?? [];
+    },
+  });
+}
+
+export function useArchivedDrawings() {
+  return useQuery({
+    queryKey: ['drawings', 'archived'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('drawings')
+        .select('*')
+        .eq('status', 'archived')
+        .order('archived_at', { ascending: false });
+      if (error) throw error;
+
+      const designerIds = [...new Set(data.map(d => d.designer_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', designerIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) ?? []);
+
+      return data?.map(d => ({
+        ...d,
+        profiles: profileMap.get(d.designer_id) ?? null,
+        status: d.status as DrawingStatus,
+      })) ?? [];
     },
   });
 }

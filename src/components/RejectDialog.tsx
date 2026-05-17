@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { createNotification } from '@/lib/notifications';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -13,6 +14,7 @@ type DrawingStatus = Database['public']['Enums']['drawing_status'];
 
 interface RejectDialogProps {
   open: boolean;
+  designerId: string;
   onOpenChange: (open: boolean) => void;
   drawingId: string;
   drawingNo: string;
@@ -20,7 +22,7 @@ interface RejectDialogProps {
   revertStatus: DrawingStatus;
 }
 
-export function RejectDialog({ open, onOpenChange, drawingId, drawingNo, revertStatus }: RejectDialogProps) {
+export function RejectDialog({ open, onOpenChange, drawingId, drawingNo, revertStatus, designerId }: RejectDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [comment, setComment] = useState('');
@@ -47,6 +49,14 @@ export function RejectDialog({ open, onOpenChange, drawingId, drawingNo, revertS
         status: revertStatus,
       }).eq('id', drawingId);
       if (updateError) throw updateError;
+
+      await createNotification({
+        userId: designerId,
+        title: 'Drawing Rejected',
+        message: `${drawingNo} has been rejected — please review the feedback and resubmit.`,
+        type: 'rejected',
+        drawingId: drawingId,
+      });
 
       toast.error(`${drawingNo} rejected — Designer has been notified`);
       queryClient.invalidateQueries({ queryKey: ['drawings'] });
