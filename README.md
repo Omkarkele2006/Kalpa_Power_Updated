@@ -6,7 +6,7 @@ To digitize and secure the lifecycle of engineering designs (PDF and CAD) from u
 
 ## 📚 The Architecture Flow
 
-<img width="2550" height="2200" alt="Kalpa Architecture flow example" src="https://github.com/user-attachments/assets/99182ba1-ed98-48aa-9bb0-a741b17df538" />
+<img width="1858" height="1911" alt="Kalpa Architecture flow example" src="https://github.com/user-attachments/assets/10e0e43a-9a22-4ab4-8b34-6a21d13df040" />
 
 
 ### 🔍 Our system enforces a mandatory hierarchy:
