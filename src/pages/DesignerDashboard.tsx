@@ -2,16 +2,13 @@ import { useDrawings } from '@/hooks/useDrawings';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { StatsCard } from '@/components/StatsCard';
-import { DrawingTable } from '@/components/DrawingTable';
 import { UploadDrawingDialog } from '@/components/UploadDrawingDialog';
-import { SubmitForReviewButton } from '@/components/SubmitForReviewButton';
 import { FileText, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 import { useDrawingComments } from '@/hooks/useDrawings';
 
 export default function DesignerDashboard() {
   const { user, profile } = useAuth();
-  const { data: allDrawings = [], isLoading } = useDrawings();
-
+  const { data: allDrawings = [] } = useDrawings();
   const myDrawings = allDrawings.filter(d => d.designer_id === user?.id);
   const wip = myDrawings.filter(d => d.status === 'working');
   const review = myDrawings.filter(d => d.status === 'under-review' || d.status === 'pending-dept-head');
@@ -36,7 +33,7 @@ export default function DesignerDashboard() {
 
         {rejected.length > 0 && <RejectionFeedback drawings={rejected} />}
 
-        <div>
+        {/* <div>
           <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">My Drawings</h2>
           {isLoading ? (
             <p className="text-muted-foreground text-sm py-8 text-center">Loading...</p>
@@ -49,7 +46,7 @@ export default function DesignerDashboard() {
               ) : null}
             />
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   );
