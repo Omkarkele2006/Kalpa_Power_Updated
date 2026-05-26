@@ -9,7 +9,17 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   role: AppRole | null;
-  profile: { full_name: string; title: string | null } | null;
+  profile: {
+    full_name: string;
+    title: string | null;
+    first_name?: string;
+    last_name?: string;
+    mobile?: string;
+    department?: string;
+    designation?: string;
+    employee_id?: string;
+    created_at?: string;
+  } | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -55,7 +65,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function fetchUserData(userId: string) {
     const [{ data: roles }, { data: prof }] = await Promise.all([
       supabase.from('user_roles').select('role').eq('user_id', userId),
-      supabase.from('profiles').select('full_name, title').eq('id', userId).single(),
+      supabase
+        .from('profiles')
+        .select('full_name, title, first_name, last_name, mobile, department, designation, employee_id, created_at')
+        .eq('id', userId)
+        .single(),
     ]);
     setRole(roles?.[0]?.role ?? null);
     setProfile(prof ?? null);
