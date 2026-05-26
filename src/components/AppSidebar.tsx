@@ -42,12 +42,15 @@ const navByRole: Record<AppRole, { title: string; url: string; icon: typeof Layo
   'line-manager': [
     { title: 'Dashboard', url: '/', icon: LayoutDashboard },
     { title: 'Review Queue', url: '/review', icon: FileCheck },
+     { title: 'Released Documents', url: '/stamping', icon: Stamp },
+     { title: 'Archive', url: '/archive', icon: Archive },
     { title: 'Analytics', url: '/analytics', icon: BarChart3 },
   ],
   'dept-head': [
     { title: 'Dashboard', url: '/', icon: LayoutDashboard },
     { title: 'Approvals', url: '/approvals', icon: FileCheck },
-    { title: 'Stamping', url: '/stamping', icon: Stamp },
+    { title: 'Released Documents', url: '/stamping', icon: Stamp },
+    { title: 'Archive', url: '/archive', icon: Archive },
     { title: 'Analytics', url: '/analytics', icon: BarChart3 },
   ],
   'site-engineer': [

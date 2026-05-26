@@ -10,6 +10,8 @@ import VendorClientDashboard from './VendorClientDashboard';
 import AnalyticsPage from './AnalyticsPage';
 import ArchivePage from './ArchivePage';
 import StampingPage from './StampingPage';
+import ApprovalsPage from './ApprovalsPage';
+import ReviewQueuePage from './ReviewQueuePage';
 import MyDrawingsPage from './MyDrawingsPage';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -36,8 +38,8 @@ export default function Index() {
           <Routes>
             <Route path="/" element={<HomeDash />} />
             <Route path="/drawings" element={<MyDrawingsPage />} />
-            <Route path="/review" element={<LineManagerDashboard />} />
-            <Route path="/approvals" element={<DeptHeadDashboard />} />
+            <Route path="/review" element={<ReviewQueuePage />} />
+            <Route path="/approvals" element={<ApprovalsPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/archive" element={<ArchivePage />} />
             <Route path="/stamping" element={<StampingPage />} />
