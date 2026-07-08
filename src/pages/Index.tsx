@@ -10,6 +10,9 @@ import VendorClientDashboard from './VendorClientDashboard';
 import AnalyticsPage from './AnalyticsPage';
 import ArchivePage from './ArchivePage';
 import StampingPage from './StampingPage';
+import ApprovalsPage from './ApprovalsPage';
+import ReviewQueuePage from './ReviewQueuePage';
+import MyDrawingsPage from './MyDrawingsPage';
 import type { Database } from '@/integrations/supabase/types';
 
 type AppRole = Database['public']['Enums']['app_role'];
@@ -34,9 +37,9 @@ export default function Index() {
         <div className="flex-1 flex flex-col min-w-0">
           <Routes>
             <Route path="/" element={<HomeDash />} />
-            <Route path="/drawings" element={<DesignerDashboard />} />
-            <Route path="/review" element={<LineManagerDashboard />} />
-            <Route path="/approvals" element={<DeptHeadDashboard />} />
+            <Route path="/drawings" element={<MyDrawingsPage />} />
+            <Route path="/review" element={<ReviewQueuePage />} />
+            <Route path="/approvals" element={<ApprovalsPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/archive" element={<ArchivePage />} />
             <Route path="/stamping" element={<StampingPage />} />

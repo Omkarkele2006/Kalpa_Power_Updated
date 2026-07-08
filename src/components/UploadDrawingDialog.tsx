@@ -294,139 +294,145 @@ export function UploadDrawingDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="flex flex-col max-h-[90vh] w-[95vw] sm:w-full sm:max-w-lg gap-0">
+        <DialogHeader className="flex-shrink-0 border-b pb-4">
           <DialogTitle>Upload New Drawing</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleUpload} className="space-y-4">
+        <div className="flex-1 overflow-y-auto pr-4">
+          <form onSubmit={handleUpload} className="space-y-4 flex flex-col" id="upload-drawing-form">
 
-          {/* ── Project selector ── */}
-          <div className="space-y-2">
-            <Label htmlFor="project-select">Project</Label>
-            <Select
-              value={selectedProjectId}
-              onValueChange={setSelectedProjectId}
-              disabled={projectsLoading}
-            >
-              <SelectTrigger id="project-select">
-                <SelectValue placeholder={projectsLoading ? 'Loading projects…' : 'Select project'} />
-              </SelectTrigger>
-              <SelectContent>
-                {projects.map(p => (
-                  <SelectItem key={p.id} value={p.id}>
-                    <span className="font-mono text-xs text-muted-foreground mr-2">[{p.project_number}]</span>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* ── Drawing type code selector ── */}
-          <div className="space-y-2">
-            <Label htmlFor="code-select">Drawing Type</Label>
-            <Select value={selectedCode} onValueChange={setSelectedCode}>
-              <SelectTrigger id="code-select">
-                <SelectValue placeholder="Select discipline / type" />
-              </SelectTrigger>
-              <SelectContent>
-                {DRAWING_TYPE_CODES.map(c => (
-                  <SelectItem key={c.code} value={c.code}>
-                    <span className="font-mono text-xs text-muted-foreground mr-2">{c.code}</span>
-                    {c.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* ── Auto-generated document number (read-only) ── */}
-          <div className="space-y-2">
-            <Label>Generated Document Number</Label>
-            <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2 min-h-[36px]">
-              <Hash className="h-4 w-4 text-muted-foreground shrink-0" />
-              {drawingNo ? (
-                <span className="font-mono text-sm font-semibold tracking-wide">{drawingNo}</span>
-              ) : (
-                <span className="text-sm text-muted-foreground italic">
-                  Select project and drawing type above
-                </span>
-              )}
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              Format: <span className="font-mono">GM-RT-DWG-[type]-[project]-[year]</span>
-            </p>
-          </div>
-
-          {/* ── Design / drawing description ── */}
-          <div className="space-y-2">
-            <Label htmlFor="designName">Design Description</Label>
-            <Input
-              id="designName"
-              value={designName}
-              onChange={e => setDesignName(e.target.value)}
-              placeholder="e.g. Panel Layout Block B, Inverter Station Detail"
-              required
-            />
-            <p className="text-[11px] text-muted-foreground">
-              This is the human-readable title — not part of the document number.
-            </p>
-          </div>
-
-          {/* ── File type selector ── */}
-          <div className="space-y-2">
-            <Label>File Type</Label>
-            <Select value={fileType} onValueChange={v => setFileType(v as 'pdf' | 'cad' | 'both')}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pdf">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" /> PDF Only
-                  </div>
-                </SelectItem>
-                <SelectItem value="cad">
-                  <div className="flex items-center gap-2">
-                    <FileCode className="h-4 w-4" /> CAD Only (.dwg / .dxf)
-                  </div>
-                </SelectItem>
-                <SelectItem value="both">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    <FileCode className="h-4 w-4" /> Both PDF + CAD
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* ── File inputs (conditional on file type) ── */}
-          {(fileType === 'pdf' || fileType === 'both') && (
+            {/* ── Project selector ── */}
             <div className="space-y-2">
-              <Label>PDF File</Label>
-              <Input ref={pdfRef} type="file" accept=".pdf" required={fileType === 'pdf'} />
+              <Label htmlFor="project-select">Project</Label>
+              <Select
+                value={selectedProjectId}
+                onValueChange={setSelectedProjectId}
+                disabled={projectsLoading}
+              >
+                <SelectTrigger id="project-select">
+                  <SelectValue placeholder={projectsLoading ? 'Loading projects…' : 'Select project'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map(p => (
+                    <SelectItem key={p.id} value={p.id}>
+                      <span className="font-mono text-xs text-muted-foreground mr-2">[{p.project_number}]</span>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          )}
-          {(fileType === 'cad' || fileType === 'both') && (
+
+            {/* ── Drawing type code selector ── */}
             <div className="space-y-2">
-              <Label>CAD File (.dwg / .dxf)</Label>
-              <Input ref={cadRef} type="file" accept=".dwg,.dxf" required={fileType === 'cad'} />
+              <Label htmlFor="code-select">Drawing Type</Label>
+              <Select value={selectedCode} onValueChange={setSelectedCode}>
+                <SelectTrigger id="code-select">
+                  <SelectValue placeholder="Select discipline / type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DRAWING_TYPE_CODES.map(c => (
+                    <SelectItem key={c.code} value={c.code}>
+                      <span className="font-mono text-xs text-muted-foreground mr-2">{c.code}</span>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          )}
 
-          {/* ── Revision preview badge ── */}
-          {drawingNo && (
-            <div className="rounded-md border border-dashed p-3 flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Will be uploaded as:</span>
-              <Badge variant="outline" className="font-mono">
-                {expectedRevision !== null ? `${drawingNo}_R${expectedRevision}` : `${drawingNo}_R…`}
-              </Badge>
+            {/* ── Auto-generated document number (read-only) ── */}
+            <div className="space-y-2">
+              <Label>Generated Document Number</Label>
+              <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2 min-h-[36px]">
+                <Hash className="h-4 w-4 text-muted-foreground shrink-0" />
+                {drawingNo ? (
+                  <span className="font-mono text-sm font-semibold tracking-wide">{drawingNo}</span>
+                ) : (
+                  <span className="text-sm text-muted-foreground italic">
+                    Select project and drawing type above
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Format: <span className="font-mono">GM-RT-DWG-[type]-[project]-[year]</span>
+              </p>
             </div>
-          )}
 
+            {/* ── Design / drawing description ── */}
+            <div className="space-y-2">
+              <Label htmlFor="designName">Design Description</Label>
+              <Input
+                id="designName"
+                value={designName}
+                onChange={e => setDesignName(e.target.value)}
+                placeholder="e.g. Panel Layout Block B, Inverter Station Detail"
+                required
+              />
+              <p className="text-[11px] text-muted-foreground">
+                This is the human-readable title — not part of the document number.
+              </p>
+            </div>
+
+            {/* ── File type selector ── */}
+            <div className="space-y-2">
+              <Label>File Type</Label>
+              <Select value={fileType} onValueChange={v => setFileType(v as 'pdf' | 'cad' | 'both')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pdf">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" /> PDF Only
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="cad">
+                    <div className="flex items-center gap-2">
+                      <FileCode className="h-4 w-4" /> CAD Only (.dwg / .dxf)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="both">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      <FileCode className="h-4 w-4" /> Both PDF + CAD
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ── File inputs (conditional on file type) ── */}
+            {(fileType === 'pdf' || fileType === 'both') && (
+              <div className="space-y-2">
+                <Label>PDF File</Label>
+                <Input ref={pdfRef} type="file" accept=".pdf" required={fileType === 'pdf'} />
+              </div>
+            )}
+            {(fileType === 'cad' || fileType === 'both') && (
+              <div className="space-y-2">
+                <Label>CAD File (.dwg / .dxf)</Label>
+                <Input ref={cadRef} type="file" accept=".dwg,.dxf" required={fileType === 'cad'} />
+              </div>
+            )}
+
+            {/* ── Revision preview badge ── */}
+            {drawingNo && (
+              <div className="rounded-md border border-dashed p-3 flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Will be uploaded as:</span>
+                <Badge variant="outline" className="font-mono">
+                  {expectedRevision !== null ? `${drawingNo}_R${expectedRevision}` : `${drawingNo}_R…`}
+                </Badge>
+              </div>
+            )}
+          </form>
+        </div>
+
+        {/* Action buttons — sticky footer */}
+        <div className="flex-shrink-0 border-t pt-4">
           <Button
+            form="upload-drawing-form"
             type="submit"
             className="w-full"
             disabled={loading || !drawingNo || !designName}
@@ -437,7 +443,7 @@ export function UploadDrawingDialog() {
               <><Upload className="h-4 w-4 mr-2" /> Upload Drawing</>
             )}
           </Button>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
