@@ -6,6 +6,10 @@ A web-based document management and approval system for solar power projects. De
 
 This system addresses the complexity of managing technical drawings across distributed solar projects. Engineers upload drawings, line managers review for completeness, department heads approve and stamp PDFs, and all approved documents are securely archived. The workflow ensures accountability through role-based access, revision tracking, and realtime notifications.
 
+## System Architecture
+
+<img width="1858" height="1911" alt="Kalpa Architecture flow example" src="https://github.com/user-attachments/assets/10e0e43a-9a22-4ab4-8b34-6a21d13df040" />
+
 ## Key Features
 
 - **Role-Based Access Control** – Five user roles (Designer, Line Manager, Dept Head, Site Engineer, Vendor/Client) with granular permissions
@@ -248,4 +252,4 @@ This project is proprietary software developed for Kalpa Power. Unauthorized cop
 
 ---
 
-**Questions or Issues?** Contact the development team or open an issue on the repository.
+**Questions or Issues?** Open an issue on this repository or reach out to the maintainers via GitHub.
